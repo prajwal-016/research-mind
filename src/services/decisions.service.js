@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { memoryService } from '@/services/memory.service';
 
 export const decisionsService = {
   async getDecisionsByLabId(labId) {
@@ -26,6 +27,12 @@ export const decisionsService = {
       .single();
 
     if (error) throw error;
+
+    // Fire-and-forget: Store in institutional memory
+    memoryService.remember('research_decision', data).catch(err =>
+      console.warn('[Decisions] Memory remember failed:', err.message)
+    );
+
     return data;
   }
 };

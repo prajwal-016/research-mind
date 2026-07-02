@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { memoryService } from '@/services/memory.service';
 
 export const datasetsService = {
   async getDatasetsByLabId(labId) {
@@ -31,6 +32,12 @@ export const datasetsService = {
       .single();
 
     if (error) throw error;
+
+    // Fire-and-forget: Store in institutional memory
+    memoryService.remember('dataset', data).catch(err =>
+      console.warn('[Datasets] Memory remember failed:', err.message)
+    );
+
     return data;
   },
 
@@ -43,10 +50,27 @@ export const datasetsService = {
       .single();
 
     if (error) throw error;
+
+    // Fire-and-forget: Update institutional memory
+    memoryService.remember('dataset', data).catch(err =>
+      console.warn('[Datasets] Memory update failed:', err.message)
+    );
+
     return data;
   },
 
   async deleteDataset(id) {
+    try {
+      const dataset = await this.getDatasetById(id);
+      if (dataset) {
+        memoryService.forget('dataset', dataset).catch(err =>
+          console.warn('[Datasets] Memory forget failed:', err.message)
+        );
+      }
+    } catch (e) {
+      console.warn('[Datasets] Failed to fetch dataset before deletion:', e.message);
+    }
+
     const { error } = await supabase
       .from('datasets')
       .delete()

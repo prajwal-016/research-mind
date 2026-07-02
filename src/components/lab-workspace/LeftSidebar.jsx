@@ -1,7 +1,7 @@
 import { NavLink, useParams } from 'react-router-dom';
 import {
   LayoutDashboard, FlaskConical, Database, 
-  Network, Compass, Sparkles, ChevronLeft, Building2, TestTube, ClipboardCheck
+  Network, Compass, Sparkles, ChevronLeft, Building2, TestTube, ClipboardCheck, Brain
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -30,7 +30,7 @@ const NAV_GROUPS = [
   }
 ];
 
-export function LeftSidebar() {
+export function LeftSidebar({ onSearchOpen }) {
   const { labId } = useParams();
   const [labDetails, setLabDetails] = useState({ name: 'Loading...', institution: '' });
 
@@ -104,6 +104,18 @@ export function LeftSidebar() {
           </div>
         ))}
       </nav>
+
+      {/* Recall Memory Button at Bottom */}
+      <div className="p-4 border-t bg-card mt-auto">
+        <Button 
+          onClick={onSearchOpen}
+          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white gap-2 shadow-md shadow-purple-500/10 hover:shadow-purple-500/25 transition-all duration-200 cursor-pointer"
+        >
+          <Brain className="h-4 w-4" />
+          Recall Memory
+        </Button>
+      </div>
     </aside>
   );
 }
+

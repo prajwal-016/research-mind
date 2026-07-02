@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { memoryService } from '@/services/memory.service';
 
 export const experimentsService = {
   async getExperimentsByLabId(labId) {
@@ -42,6 +43,12 @@ export const experimentsService = {
       .single();
 
     if (error) throw error;
+
+    // Fire-and-forget: Store in institutional memory
+    memoryService.remember('experiment', data).catch(err =>
+      console.warn('[Experiments] Memory remember failed:', err.message)
+    );
+
     return data;
   },
 
@@ -54,10 +61,27 @@ export const experimentsService = {
       .single();
 
     if (error) throw error;
+
+    // Fire-and-forget: Update institutional memory
+    memoryService.remember('experiment', data).catch(err =>
+      console.warn('[Experiments] Memory update failed:', err.message)
+    );
+
     return data;
   },
 
   async deleteExperiment(id) {
+    try {
+      const experiment = await this.getExperimentById(id);
+      if (experiment) {
+        memoryService.forget('experiment', experiment).catch(err =>
+          console.warn('[Experiments] Memory forget failed:', err.message)
+        );
+      }
+    } catch (e) {
+      console.warn('[Experiments] Failed to fetch experiment before deletion:', e.message);
+    }
+
     const { error } = await supabase
       .from('experiments')
       .delete()

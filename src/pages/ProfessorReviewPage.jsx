@@ -9,6 +9,7 @@ import { experimentsService } from '@/services/experiments.service';
 import { decisionsService } from '@/services/decisions.service';
 import { notificationsService } from '@/services/notifications.service';
 import { useAuth } from '@/context/AuthContext';
+import { memoryService } from '@/services/memory.service';
 
 export default function ProfessorReviewPage() {
   const { labId } = useParams();
@@ -84,6 +85,14 @@ export default function ProfessorReviewPage() {
           actionUrl: `/labs/${labId}/experiments/${experiment.id}`,
           actorId: user.id
         });
+      }
+
+      // Fire-and-forget: Cognee Memory operations
+      if (decision === 'approved') {
+        // Strengthen validated knowledge
+        memoryService.improve('experiment', experiment, comments || 'Approved by professor').catch(err =>
+          console.warn('[Review] Memory improve failed:', err.message)
+        );
       }
 
     } catch (error) {
