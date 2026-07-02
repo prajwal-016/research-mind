@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, User, Bell, Shield, Key, Eye, HelpCircle, Save, Sparkles, AlertCircle } from 'lucide-react';
+import { Settings, User, Bell, Shield, Key, Eye, HelpCircle, Save, Sparkles, AlertCircle, Sun, Moon, Monitor } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { demoModeUtil } from '@/utils/demo';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
