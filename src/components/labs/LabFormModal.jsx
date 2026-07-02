@@ -44,8 +44,8 @@ export function LabFormModal({ isOpen, onClose, onSubmit }) {
         slug,
         institution: values.institution,
         department: values.department || '',
-        metadata: {
-          description: values.description || '',
+        description: values.description || '',
+        settings: {
           memory_health: 100,
           ai_insights: []
         }
