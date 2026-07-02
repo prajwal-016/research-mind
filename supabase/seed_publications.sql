@@ -1,5 +1,5 @@
 -- =============================================================================
--- ResearchMind — 6 Publications Seeding Script
+-- ResearchMind — 6 Publications Seeding Script (Pending DOI Fix)
 -- =============================================================================
 -- Run this in the Supabase SQL Editor (Dashboard → SQL Editor → New query)
 -- This script:
@@ -32,7 +32,7 @@ DECLARE
   uid_priya    UUID;
   uid_arjun    UUID;
   uid_sneha    UUID;
-BEGIN
+begin
 
   -- 1. Fetch AI Lab ID
   SELECT id INTO v_lab_id FROM public.labs WHERE slug = 'ai-lab' LIMIT 1;
@@ -111,7 +111,7 @@ BEGIN
     ARRAY['Arjun Patel', 'Karthik Reddy'],
     'An AI-powered semantic research assistant that combines Cognee and Gemini to answer laboratory research questions.',
     'under_review', 'journal_article', 'International Journal of AI Applications',
-    '2026-12-01 00:00:00+00', 'Pending', uid_arjun,
+    '2026-12-01 00:00:00+00', NULL, uid_arjun,
     '{"publication_code": "PUB-AI-004", "related_experiments": ["EXP-AI-008", "EXP-AI-009"], "related_decisions": ["DEC-AI-005"], "related_meetings": ["MTG-AI-006"]}'
   );
 
@@ -123,7 +123,7 @@ BEGIN
     ARRAY['Sneha Kulkarni', 'Neha Gupta'],
     'Interactive visualization techniques for exploring institutional memory using knowledge graphs.',
     'accepted', 'conference_paper', 'IEEE VIS Conference',
-    '2026-10-01 00:00:00+00', 'Pending', uid_sneha,
+    '2026-10-01 00:00:00+00', NULL, uid_sneha,
     '{"publication_code": "PUB-AI-005", "related_experiments": ["EXP-AI-010"], "related_decisions": ["DEC-AI-004"], "related_meetings": ["MTG-AI-007"]}'
   );
 
