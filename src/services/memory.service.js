@@ -1,6 +1,7 @@
 import { cogneeClient, isCogneeConfigured, CogneeApiError } from '@/lib/cognee';
 import { supabase } from '@/lib/supabase';
 import { memoryObjectBuilder } from '@/services/memory-objects.service';
+import { aiService } from '@/services/ai.service';
 
 /**
  * Memory Service — orchestrates the complete Cognee memory lifecycle.
@@ -98,6 +99,31 @@ export const memoryService = {
 
       // Parse and structure the response
       const parsed = this._parseRecallResults(results, query);
+
+      // Synthesize answer using Gemini
+      try {
+        const prompt = `You are the AI research memory assistant for the laboratory.
+Answer the user's question clearly, using ONLY the facts retrieved from institutional memories below.
+
+Question: "${query}"
+
+Retrieved Memories Context:
+${parsed.answer || 'No direct matches found.'}
+
+Instructions:
+1. Synthesize a professional, natural-language answer based only on the provided context.
+2. If the context is empty or doesn't have enough facts to fully answer, say you don't have enough verified memory to answer, but summarize any related details you found.
+3. Keep the response structured (bullet points are good) and direct.
+4. Do not mention "context", "memories", "database", or "Cognee". Present it directly as laboratory history facts.
+
+Answer:`;
+        const synthesized = await aiService.generate(prompt);
+        if (synthesized && synthesized.trim()) {
+          parsed.answer = synthesized.trim();
+        }
+      } catch (geminiErr) {
+        console.warn('[Memory] Gemini synthesis failed, falling back to raw recall answer:', geminiErr.message);
+      }
 
       // Log the query
       await this._logMemoryActivity('memory_recalled', 'query', null, query);
@@ -385,10 +411,13 @@ export const memoryService = {
     const supportingPapers = this._extractEntities(results, 'research_paper');
     const supportingMeetings = this._extractEntities(results, 'meeting');
     const supportingDecisions = this._extractEntities(results, 'research_decision');
+    const supportingDatasets = this._extractEntities(results, 'dataset');
+    const supportingPublications = this._extractEntities(results, 'publication');
 
     // Calculate confidence based on number of supporting entities
     const totalSupport = supportingExperiments.length + supportingPapers.length +
-                         supportingMeetings.length + supportingDecisions.length;
+                         supportingMeetings.length + supportingDecisions.length +
+                         supportingDatasets.length + supportingPublications.length;
     const confidence = Math.min(totalSupport > 0 ? 0.5 + (totalSupport * 0.1) : 0.3, 1.0);
 
     return {
@@ -397,6 +426,8 @@ export const memoryService = {
       supportingPapers,
       supportingMeetings,
       supportingDecisions,
+      supportingDatasets,
+      supportingPublications,
       confidence,
       memoryPath: [`Query: "${query}"`, `Source: Cognee Knowledge Graph`, `Matches: ${totalSupport} entities`],
     };

@@ -28,6 +28,7 @@ const MeetingsPage      = lazy(() => import('@/pages/MeetingsPage'));
 const AnalyticsPage     = lazy(() => import('@/pages/AnalyticsPage'));
 const SettingsPage      = lazy(() => import('@/pages/SettingsPage'));
 const ProfessorReviewPage = lazy(() => import('@/pages/ProfessorReviewPage'));
+const InstitutionalMemoryPage = lazy(() => import('@/pages/InstitutionalMemoryPage'));
 const NotFoundPage      = lazy(() => import('@/pages/NotFoundPage'));
 
 // ─── Suspense fallback ────────────────────────────────────────────────────────
@@ -106,8 +107,9 @@ export const router = createBrowserRouter([
               { path: '/labs/:labId/projects/:projectId', element: withSuspense(ProjectDetailsPage) },
               { path: '/labs/:labId/experiments', element: withSuspense(ExperimentsPage) },
               { path: '/labs/:labId/experiments/:experimentId', element: withSuspense(ExperimentDetailsPage) },
-              { path: '/labs/:labId/knowledge', element: withSuspense(KnowledgeBasePage) },
+               { path: '/labs/:labId/knowledge', element: withSuspense(KnowledgeBasePage) },
               { path: '/labs/:labId/review', element: withSuspense(ProfessorReviewPage) },
+              { path: '/labs/:labId/memory', element: withSuspense(InstitutionalMemoryPage) },
               { path: '/labs/:labId/*', element: withSuspense(LabOverviewPage) }, // Catch-all for undefined workspace tabs
             ],
           },

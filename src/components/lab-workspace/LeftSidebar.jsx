@@ -23,6 +23,7 @@ const NAV_GROUPS = [
   {
     title: 'Institutional Memory',
     items: [
+      { label: 'Recall Center', href: '/memory', icon: Brain },
       { label: 'Memory Graph', href: '/graph', icon: Network },
       { label: 'Research Journey', href: '/journey', icon: Compass },
       { label: 'Insights', href: '/insights', icon: Sparkles },
