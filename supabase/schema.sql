@@ -201,7 +201,7 @@ CREATE TABLE IF NOT EXISTS public.labs (
   cognee_lab_id   TEXT,                            -- Cognee memory graph node
   is_public       BOOLEAN     NOT NULL DEFAULT FALSE,
   is_active       BOOLEAN     NOT NULL DEFAULT TRUE,
-  created_by      UUID        NOT NULL REFERENCES public.users(id) ON DELETE RESTRICT,
+  created_by      UUID        NOT NULL DEFAULT auth.uid() REFERENCES public.users(id) ON DELETE RESTRICT,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

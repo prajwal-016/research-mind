@@ -158,3 +158,6 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+
+-- 7. Ensure labs.created_by defaults to auth.uid() if not specified in the payload
+ALTER TABLE public.labs ALTER COLUMN created_by SET DEFAULT auth.uid();
