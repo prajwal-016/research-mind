@@ -146,11 +146,23 @@ export default function RegisterPage() {
             />
           </FormField>
           <FormField id="position" label="Position" error={errors.position?.message}>
-            <Input
+            <select
               id="position"
-              placeholder="PhD Student"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               {...register('position')}
-            />
+            >
+              <option value="">Select Position...</option>
+              <option value="Professor">Professor</option>
+              <option value="Associate Professor">Associate Professor</option>
+              <option value="Assistant Professor">Assistant Professor</option>
+              <option value="PI">Principal Investigator (PI)</option>
+              <option value="Postdoctoral Researcher">Postdoctoral Researcher</option>
+              <option value="PhD Student">PhD Student</option>
+              <option value="PhD Research Scholar">PhD Research Scholar</option>
+              <option value="Master's Student">Master's Student</option>
+              <option value="Research Assistant">Research Assistant</option>
+              <option value="Undergraduate Student">Undergraduate Student</option>
+            </select>
           </FormField>
         </div>
 
