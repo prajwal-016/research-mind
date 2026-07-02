@@ -35,6 +35,9 @@ DECLARE
   uid_meera    UUID := uuid_generate_v4();
   uid_rajesh   UUID := uuid_generate_v4();
   uid_shalini  UUID := uuid_generate_v4();
+
+  -- Pre-computed bcrypt hash for 'Password123!' (cost factor 10)
+  v_pass_hash  TEXT := '$2b$10$c9WFkOYThuCu5hq6lOh5iOXlXP5sqGn5CAFvhyNSU0L0YQkyEotOq';
 BEGIN
 
   -- ---------------------------------------------------------------------------
@@ -43,55 +46,55 @@ BEGIN
   
   -- Dr. Ananya Rao (Owner)
   INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-  VALUES (uid_ananya, 'authenticated', 'authenticated', 'ananya.rao@nitk.edu', crypt('Password123!', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Dr. Ananya Rao","position":"PI","institution":"NITK","department":"Computer Science & Engineering"}', now(), now());
+  VALUES (uid_ananya, 'authenticated', 'authenticated', 'ananya.rao@nitk.edu', v_pass_hash, now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Dr. Ananya Rao","position":"PI","institution":"NITK","department":"Computer Science & Engineering"}', now(), now());
 
   -- Dr. Vikram Iyer (Admin)
   INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-  VALUES (uid_vikram, 'authenticated', 'authenticated', 'vikram.iyer@nitk.edu', crypt('Password123!', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Dr. Vikram Iyer","position":"PI","institution":"NITK","department":"Computer Science & Engineering"}', now(), now());
+  VALUES (uid_vikram, 'authenticated', 'authenticated', 'vikram.iyer@nitk.edu', v_pass_hash, now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Dr. Vikram Iyer","position":"PI","institution":"NITK","department":"Computer Science & Engineering"}', now(), now());
 
   -- Rahul Sharma (Member - PhD Student)
   INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-  VALUES (uid_rahul, 'authenticated', 'authenticated', 'rahul.sharma@nitk.edu', crypt('Password123!', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Rahul Sharma","position":"PhD Research Scholar","institution":"NITK"}', now(), now());
+  VALUES (uid_rahul, 'authenticated', 'authenticated', 'rahul.sharma@nitk.edu', v_pass_hash, now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Rahul Sharma","position":"PhD Research Scholar","institution":"NITK"}', now(), now());
 
   -- Priya Nair (Member - PhD Student)
   INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-  VALUES (uid_priya, 'authenticated', 'authenticated', 'priya.nair@nitk.edu', crypt('Password123!', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Priya Nair","position":"PhD Research Scholar","institution":"NITK"}', now(), now());
+  VALUES (uid_priya, 'authenticated', 'authenticated', 'priya.nair@nitk.edu', v_pass_hash, now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Priya Nair","position":"PhD Research Scholar","institution":"NITK"}', now(), now());
 
   -- Arjun Patel (Member - Research Assistant)
   INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-  VALUES (uid_arjun, 'authenticated', 'authenticated', 'arjun.patel@nitk.edu', crypt('Password123!', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Arjun Patel","position":"Research Assistant","institution":"NITK"}', now(), now());
+  VALUES (uid_arjun, 'authenticated', 'authenticated', 'arjun.patel@nitk.edu', v_pass_hash, now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Arjun Patel","position":"Research Assistant","institution":"NITK"}', now(), now());
 
   -- Sneha Kulkarni (Member - Master's Student)
   INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-  VALUES (uid_sneha, 'authenticated', 'authenticated', 'sneha.kulkarni@nitk.edu', crypt('Password123!', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Sneha Kulkarni","position":"Master''s Student","institution":"NITK"}', now(), now());
+  VALUES (uid_sneha, 'authenticated', 'authenticated', 'sneha.kulkarni@nitk.edu', v_pass_hash, now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Sneha Kulkarni","position":"Master''s Student","institution":"NITK"}', now(), now());
 
   -- Neha Gupta (Member - Master's Student)
   INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-  VALUES (uid_neha, 'authenticated', 'authenticated', 'neha.gupta@nitk.edu', crypt('Password123!', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Neha Gupta","position":"Master''s Student","institution":"NITK"}', now(), now());
+  VALUES (uid_neha, 'authenticated', 'authenticated', 'neha.gupta@nitk.edu', v_pass_hash, now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Neha Gupta","position":"Master''s Student","institution":"NITK"}', now(), now());
 
   -- Karthik Reddy (Member - Undergraduate Student)
   INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-  VALUES (uid_karthik, 'authenticated', 'authenticated', 'karthik.reddy@nitk.edu', crypt('Password123!', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Karthik Reddy","position":"Undergraduate Student","institution":"NITK"}', now(), now());
+  VALUES (uid_karthik, 'authenticated', 'authenticated', 'karthik.reddy@nitk.edu', v_pass_hash, now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Karthik Reddy","position":"Undergraduate Student","institution":"NITK"}', now(), now());
 
   -- Aditi Mehta (Guest)
   INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-  VALUES (uid_aditi, 'authenticated', 'authenticated', 'aditi.mehta@nitk.edu', crypt('Password123!', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Aditi Mehta","position":"Undergraduate Student","institution":"NITK"}', now(), now());
+  VALUES (uid_aditi, 'authenticated', 'authenticated', 'aditi.mehta@nitk.edu', v_pass_hash, now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Aditi Mehta","position":"Undergraduate Student","institution":"NITK"}', now(), now());
 
   -- Rohan Verma (Guest)
   INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-  VALUES (uid_rohan, 'authenticated', 'authenticated', 'rohan.verma@nitk.edu', crypt('Password123!', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Rohan Verma","position":"Undergraduate Student","institution":"NITK"}', now(), now());
+  VALUES (uid_rohan, 'authenticated', 'authenticated', 'rohan.verma@nitk.edu', v_pass_hash, now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Rohan Verma","position":"Undergraduate Student","institution":"NITK"}', now(), now());
 
   -- Dr. Meera Krishnan (Professor - Cyber Security PI)
   INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-  VALUES (uid_meera, 'authenticated', 'authenticated', 'meera.krishnan@nitk.edu', crypt('Password123!', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Dr. Meera Krishnan","position":"Professor","institution":"NITK","department":"Computer Science & Engineering"}', now(), now());
+  VALUES (uid_meera, 'authenticated', 'authenticated', 'meera.krishnan@nitk.edu', v_pass_hash, now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Dr. Meera Krishnan","position":"Professor","institution":"NITK","department":"Computer Science & Engineering"}', now(), now());
 
   -- Dr. Rajesh Kumar (Professor - Data Science PI)
   INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-  VALUES (uid_rajesh, 'authenticated', 'authenticated', 'rajesh.kumar@nitk.edu', crypt('Password123!', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Dr. Rajesh Kumar","position":"Professor","institution":"NITK","department":"Computer Science & Engineering"}', now(), now());
+  VALUES (uid_rajesh, 'authenticated', 'authenticated', 'rajesh.kumar@nitk.edu', v_pass_hash, now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Dr. Rajesh Kumar","position":"Professor","institution":"NITK","department":"Computer Science & Engineering"}', now(), now());
 
   -- Dr. Shalini Deshpande (Professor - IoT PI)
   INSERT INTO auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-  VALUES (uid_shalini, 'authenticated', 'authenticated', 'shalini.deshpande@nitk.edu', crypt('Password123!', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Dr. Shalini Deshpande","position":"Professor","institution":"NITK","department":"Electronics & Communication Engineering"}', now(), now());
+  VALUES (uid_shalini, 'authenticated', 'authenticated', 'shalini.deshpande@nitk.edu', v_pass_hash, now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Dr. Shalini Deshpande","position":"Professor","institution":"NITK","department":"Electronics & Communication Engineering"}', now(), now());
 
   -- ---------------------------------------------------------------------------
   -- 2. Create the 5 Research Labs
