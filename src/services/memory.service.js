@@ -445,6 +445,64 @@ Answer:`;
     }
   },
 
+  /**
+   * Queue a failed operation for later retry. Exposes public mapping.
+   */
+  async queueMemory(operation, entityType, entityData, context = {}) {
+    return this._queueOperation(operation, entityType, entityData, context);
+  },
+
+  /**
+   * Retry a specific single operation in the queue.
+   */
+  async retryMemory(itemId) {
+    try {
+      const { data: item, error } = await supabase
+        .from('memory_queue')
+        .select('*')
+        .eq('id', itemId)
+        .single();
+      
+      if (error || !item) throw new Error('Queue item not found');
+
+      await supabase.from('memory_queue').update({ status: 'processing' }).eq('id', itemId);
+
+      const { entityData, context } = item.payload;
+
+      switch (item.operation) {
+        case 'remember':
+          await this.remember(item.entity_type, entityData, context);
+          break;
+        case 'improve':
+          await this.improve(item.entity_type, entityData, context?.approvalContext);
+          break;
+        case 'forget':
+          await this.forget(item.entity_type, entityData);
+          break;
+      }
+
+      await supabase.from('memory_queue').update({
+        status: 'completed',
+        processed_at: new Date().toISOString()
+      }).eq('id', itemId);
+
+      return { success: true };
+    } catch (err) {
+      await supabase.from('memory_queue').update({
+        status: 'failed',
+        last_error: err.message
+      }).eq('id', itemId);
+      return { success: false, error: err.message };
+    }
+  },
+
+  /**
+   * Health check for Cognee connectivity status.
+   */
+  async healthCheck() {
+    return cogneeClient.healthCheck();
+  },
+
   // ─── PRIVATE HELPERS ───────────────────────────────────────────────────────
 
   /**
