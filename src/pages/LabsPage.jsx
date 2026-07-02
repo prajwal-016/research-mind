@@ -1,53 +1,66 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Building2, FlaskConical, Loader2, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LabCard } from '@/components/labs/LabCard';
+import { LabFormModal } from '@/components/labs/LabFormModal';
 import { labsService } from '@/services/labs.service';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'sonner';
 
 export default function LabsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [labs, setLabs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  const fetchLabs = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await labsService.getLabs();
+      
+      // Map Supabase data to match the expected format for LabCard
+      const mappedLabs = data.map(lab => ({
+        ...lab,
+        pi: { 
+          initials: 'PI', 
+          name: lab.pi_name || 'Principal Investigator' 
+        },
+        stats: {
+          researchers: lab.researchers_count || 0,
+          projects: lab.projects_count || 0,
+          papers: lab.papers_count || 0,
+        },
+        memoryHealth: lab.memory_health || Math.floor(Math.random() * 40) + 60,
+        tags: lab.tags || [],
+        isMember: false
+      }));
+      
+      setLabs(mappedLabs);
+    } catch (err) {
+      console.error('Failed to fetch labs:', err);
+      setError(err.message || 'Failed to load labs. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    async function fetchLabs() {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const data = await labsService.getLabs();
-        
-        // Map Supabase data to match the expected format for LabCard
-        const mappedLabs = data.map(lab => ({
-          ...lab,
-          // Fallbacks for nested relational data if not populated yet
-          pi: { 
-            initials: 'PI', 
-            name: lab.pi_name || 'Principal Investigator' 
-          },
-          stats: {
-            researchers: lab.researchers_count || 0,
-            projects: lab.projects_count || 0,
-            papers: lab.papers_count || 0,
-          },
-          memoryHealth: lab.memory_health || Math.floor(Math.random() * 40) + 60, // Dummy fallback if not in schema
-          tags: lab.tags || [],
-          isMember: false // We can wire this up when lab_members is fetched
-        }));
-        
-        setLabs(mappedLabs);
-      } catch (err) {
-        console.error('Failed to fetch labs:', err);
-        setError(err.message || 'Failed to load labs. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
     fetchLabs();
-  }, []);
+  }, [fetchLabs]);
+
+  const handleCreateLab = async (payload) => {
+    try {
+      await labsService.createLab(payload);
+      toast.success('Research Lab created successfully!');
+      fetchLabs();
+    } catch (err) {
+      console.error('Failed to create lab:', err);
+      toast.error(err.message || 'Failed to create laboratory environment.');
+    }
+  };
 
   const filteredLabs = useMemo(() => {
     if (!searchQuery) return labs;
@@ -82,12 +95,19 @@ export default function LabsPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button className="shrink-0 gap-2">
+          <Button onClick={() => setIsCreateOpen(true)} className="shrink-0 gap-2 cursor-pointer">
             <Building2 className="h-4 w-4" />
             <span className="hidden sm:inline">Create Lab</span>
           </Button>
         </div>
       </div>
+
+      {/* Form Modal */}
+      <LabFormModal 
+        isOpen={isCreateOpen} 
+        onClose={() => setIsCreateOpen(false)} 
+        onSubmit={handleCreateLab} 
+      />
 
       {/* Error State */}
       {error && (
