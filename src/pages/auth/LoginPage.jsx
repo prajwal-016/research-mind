@@ -115,7 +115,6 @@ export default function LoginPage() {
         </Button>
       </FormRoot>
 
-      {/* Register link */}
       <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{' '}
         <Link
@@ -123,7 +122,7 @@ export default function LoginPage() {
           className="font-medium text-primary hover:underline"
           id="go-to-register-link"
         >
-          Register your lab
+          Sign up
         </Link>
       </p>
     </div>
