@@ -30,6 +30,7 @@ const SettingsPage      = lazy(() => import('@/pages/SettingsPage'));
 const ProfessorReviewPage = lazy(() => import('@/pages/ProfessorReviewPage'));
 const InstitutionalMemoryPage = lazy(() => import('@/pages/InstitutionalMemoryPage'));
 const MemoryGraphPage = lazy(() => import('@/pages/MemoryGraphPage'));
+const ResearchJourneyPage = lazy(() => import('@/pages/ResearchJourneyPage'));
 const NotFoundPage      = lazy(() => import('@/pages/NotFoundPage'));
 
 // ─── Suspense fallback ────────────────────────────────────────────────────────
@@ -112,6 +113,7 @@ export const router = createBrowserRouter([
               { path: '/labs/:labId/review', element: withSuspense(ProfessorReviewPage) },
               { path: '/labs/:labId/memory', element: withSuspense(InstitutionalMemoryPage) },
               { path: '/labs/:labId/graph', element: withSuspense(MemoryGraphPage) },
+              { path: '/labs/:labId/journey', element: withSuspense(ResearchJourneyPage) },
               { path: '/labs/:labId/*', element: withSuspense(LabOverviewPage) }, // Catch-all for undefined workspace tabs
             ],
           },
