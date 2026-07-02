@@ -71,11 +71,14 @@ export const papersService = {
       console.warn('[Papers] Failed to fetch paper before deletion:', e.message);
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('research_papers')
-      .delete()
-      .eq('id', id);
+      .update({ is_archived: true })
+      .eq('id', id)
+      .select()
+      .single();
 
     if (error) throw error;
+    return data;
   }
 };

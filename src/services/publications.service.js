@@ -57,9 +57,16 @@ export const publicationsService = {
         console.warn('[Publications] Memory forget failed:', err.message)
       );
     } else if (updates.status === 'published' || updates.status === 'accepted') {
-      memoryService.improve('publication', data, `Publication ${updates.status}`).catch(err =>
-        console.warn('[Publications] Memory improve failed:', err.message)
-      );
+      // Execute remember() followed by improve()
+      memoryService.remember('publication', data)
+        .then(() => {
+          memoryService.improve('publication', data, `Publication ${updates.status}`).catch(err =>
+            console.warn('[Publications] Memory improve failed:', err.message)
+          );
+        })
+        .catch(err =>
+          console.warn('[Publications] Memory remember before improve failed:', err.message)
+        );
     } else {
       memoryService.remember('publication', data).catch(err =>
         console.warn('[Publications] Memory update failed:', err.message)
@@ -70,11 +77,25 @@ export const publicationsService = {
   },
 
   async deletePublication(id) {
-    const { error } = await supabase
+    try {
+      const publication = await this.getPublicationById(id);
+      if (publication) {
+        memoryService.forget('publication', publication).catch(err =>
+          console.warn('[Publications] Memory forget failed:', err.message)
+        );
+      }
+    } catch (e) {
+      console.warn('[Publications] Failed to fetch publication before deletion:', e.message);
+    }
+
+    const { data, error } = await supabase
       .from('publications')
-      .delete()
-      .eq('id', id);
+      .update({ is_archived: true, status: 'archived' })
+      .eq('id', id)
+      .select()
+      .single();
 
     if (error) throw error;
+    return data;
   }
 };

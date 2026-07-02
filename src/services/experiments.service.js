@@ -86,11 +86,14 @@ export const experimentsService = {
       console.warn('[Experiments] Failed to fetch experiment before deletion:', e.message);
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('experiments')
-      .delete()
-      .eq('id', id);
+      .update({ is_archived: true, status: 'archived' })
+      .eq('id', id)
+      .select()
+      .single();
 
     if (error) throw error;
+    return data;
   }
 };

@@ -1,4 +1,5 @@
-import { Search, Bell, Sun, Moon, Menu, LogOut, User, Settings } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Bell, Sun, Moon, Menu, LogOut, User, Settings, RefreshCw } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ import {
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
 import { getInitials } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
 
 /**
  * Topbar — top navigation bar with search, theme toggle, notifications,
@@ -25,6 +27,27 @@ export function Topbar({ onMenuClick }) {
   const { resolvedTheme, toggleTheme } = useTheme();
   const { user, signOut, displayName } = useAuth();
   const navigate = useNavigate();
+  const [pendingSyncCount, setPendingSyncCount] = useState(0);
+
+  useEffect(() => {
+    async function checkQueue() {
+      try {
+        const { count, error } = await supabase
+          .from('memory_queue')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending');
+        if (!error) {
+          setPendingSyncCount(count || 0);
+        }
+      } catch (err) {
+        console.warn('[Topbar] Queue check failed:', err);
+      }
+    }
+
+    checkQueue();
+    const interval = setInterval(checkQueue, 15000);
+    return () => clearInterval(interval);
+  }, []);
 
   const userMeta = user?.user_metadata ?? {};
   const email    = user?.email ?? '';
@@ -62,6 +85,12 @@ export function Topbar({ onMenuClick }) {
       </div>
 
       <div className="ml-auto flex items-center gap-2">
+        {pendingSyncCount > 0 && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-500 border border-amber-500/20 text-xs font-semibold animate-pulse mr-2">
+            <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+            Memory synchronization pending.
+          </div>
+        )}
         {/* Theme toggle */}
         <Button
           variant="ghost"

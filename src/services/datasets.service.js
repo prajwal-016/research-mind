@@ -56,6 +56,13 @@ export const datasetsService = {
       console.warn('[Datasets] Memory update failed:', err.message)
     );
 
+    // If marked as recommended, improve memory
+    if (updates.is_recommended || updates.metadata?.recommended === true) {
+      memoryService.improve('dataset', data, 'Dataset version recommended by lab staff').catch(err =>
+        console.warn('[Datasets] Memory improve failed:', err.message)
+      );
+    }
+
     return data;
   },
 
@@ -71,11 +78,14 @@ export const datasetsService = {
       console.warn('[Datasets] Failed to fetch dataset before deletion:', e.message);
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('datasets')
-      .delete()
-      .eq('id', id);
+      .update({ is_archived: true })
+      .eq('id', id)
+      .select()
+      .single();
 
     if (error) throw error;
+    return data;
   }
 };

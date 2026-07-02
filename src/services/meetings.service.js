@@ -71,11 +71,14 @@ export const meetingsService = {
       console.warn('[Meetings] Failed to fetch meeting before deletion:', e.message);
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('meetings')
-      .delete()
-      .eq('id', id);
+      .update({ is_archived: true })
+      .eq('id', id)
+      .select()
+      .single();
 
     if (error) throw error;
+    return data;
   }
 };

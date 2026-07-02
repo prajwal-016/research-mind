@@ -34,5 +34,57 @@ export const decisionsService = {
     );
 
     return data;
+  },
+
+  async updateDecision(id, updates) {
+    const { data, error } = await supabase
+      .from('research_decisions')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // If approved, trigger improve(), otherwise remember()
+    if (updates.status === 'approved') {
+      memoryService.improve('research_decision', data, 'Decision approved by faculty').catch(err =>
+        console.warn('[Decisions] Memory improve failed:', err.message)
+      );
+    } else {
+      memoryService.remember('research_decision', data).catch(err =>
+        console.warn('[Decisions] Memory update failed:', err.message)
+      );
+    }
+
+    return data;
+  },
+
+  async deleteDecision(id) {
+    try {
+      const { data: decision } = await supabase
+        .from('research_decisions')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (decision) {
+        memoryService.forget('research_decision', decision).catch(err =>
+          console.warn('[Decisions] Memory forget failed:', err.message)
+        );
+      }
+    } catch (e) {
+      console.warn('[Decisions] Failed to fetch decision before deletion:', e.message);
+    }
+
+    const { data, error } = await supabase
+      .from('research_decisions')
+      .update({ is_archived: true, status: 'archived' })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 };

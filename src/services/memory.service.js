@@ -66,6 +66,7 @@ export const memoryService = {
       // Queue for retry if transient error
       if (error instanceof CogneeApiError && error.isTransient) {
         await this._queueOperation('remember', entityType, entityData, context);
+        await this._logMemoryActivity('memory_sync_failed', entityType, entityData.id, error.message);
         return { success: false, queued: true };
       }
 
@@ -279,19 +280,41 @@ Answer:`;
    * @param {string} approvalContext - Why this was approved
    * @returns {Promise<{ success: boolean }>}
    */
-  async improve(entityType, entityData, approvalContext = '') {
+  async improve(entityType, entityData, validationInput = '') {
     if (!isCogneeConfigured()) {
       return { success: false, reason: 'not_configured' };
     }
 
     try {
+      let approvalContext = '';
+      let validationNotes = '';
+      let confidenceLevel = 'high';
+      let reviewer = 'Dr. Ananya Rao';
+      let reviewerRole = 'Professor / PI';
+      let reviewDate = new Date().toISOString();
+
+      if (typeof validationInput === 'object' && validationInput !== null) {
+        reviewer = validationInput.reviewer || reviewer;
+        reviewerRole = validationInput.reviewerRole || reviewerRole;
+        reviewDate = validationInput.reviewDate || reviewDate;
+        approvalContext = validationInput.comments || validationInput.approvalContext || '';
+        validationNotes = validationInput.validationNotes || '';
+        confidenceLevel = validationInput.confidenceLevel || 'high';
+      } else {
+        approvalContext = validationInput;
+      }
+
       // Build an enriched memory with approval context
       const enrichedContent = [
-        `[VALIDATED KNOWLEDGE — Professor Approved]`,
+        `[VALIDATED KNOWLEDGE — Faculty Validation]`,
         `Entity Type: ${entityType}`,
         `Title: ${entityData.title || entityData.name}`,
-        `Status: Approved and validated`,
-        approvalContext ? `Approval Context: ${approvalContext}` : '',
+        `Reviewer: ${reviewer}`,
+        `Reviewer Role: ${reviewerRole}`,
+        `Review Date: ${reviewDate}`,
+        approvalContext ? `Comments: ${approvalContext}` : '',
+        validationNotes ? `Validation Notes: ${validationNotes}` : '',
+        `Confidence Level: ${confidenceLevel}`,
         `This knowledge has been validated by faculty review and should be given higher confidence in future retrievals.`,
         `Validated At: ${new Date().toISOString()}`,
       ].filter(Boolean).join('\n');
@@ -308,7 +331,8 @@ Answer:`;
     } catch (error) {
       console.error(`[Memory] improve() failed:`, error.message);
       if (error instanceof CogneeApiError && error.isTransient) {
-        await this._queueOperation('improve', entityType, entityData, { approvalContext });
+        await this._queueOperation('improve', entityType, entityData, { validationInput });
+        await this._logMemoryActivity('memory_sync_failed', entityType, entityData.id, error.message);
         return { success: false, queued: true };
       }
       return { success: false, error: error.message };
@@ -345,6 +369,7 @@ Answer:`;
       console.error(`[Memory] forget() failed:`, error.message);
       if (error instanceof CogneeApiError && error.isTransient) {
         await this._queueOperation('forget', entityType, entityData, {});
+        await this._logMemoryActivity('memory_sync_failed', entityType, entityData.id, error.message);
         return { success: false, queued: true };
       }
       return { success: false, error: error.message };
@@ -415,7 +440,7 @@ Answer:`;
               await this.remember(item.entity_type, entityData, context);
               break;
             case 'improve':
-              await this.improve(item.entity_type, entityData, context.approvalContext);
+              await this.improve(item.entity_type, entityData, context?.validationInput || context?.approvalContext);
               break;
             case 'forget':
               await this.forget(item.entity_type, entityData);
@@ -428,6 +453,8 @@ Answer:`;
             .update({ status: 'completed', processed_at: new Date().toISOString() })
             .eq('id', item.id);
 
+          await this._logMemoryActivity('memory_retry_success', item.entity_type, entityData?.id, entityData?.title || entityData?.name);
+
         } catch (err) {
           // Increment retry count
           await supabase
@@ -438,6 +465,8 @@ Answer:`;
               last_error: err.message,
             })
             .eq('id', item.id);
+
+          await this._logMemoryActivity('memory_sync_failed', item.entity_type, item.entity_id, err.message);
         }
       }
     } catch (err) {

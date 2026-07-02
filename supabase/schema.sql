@@ -47,7 +47,8 @@ CREATE TYPE experiment_status AS ENUM (
   'running',
   'completed',
   'failed',
-  'cancelled'
+  'cancelled',
+  'archived'
 );
 
 -- Paper / publication types
@@ -68,7 +69,8 @@ CREATE TYPE publication_status AS ENUM (
   'accepted',
   'published',
   'rejected',
-  'withdrawn'
+  'withdrawn',
+  'archived'
 );
 
 -- Dataset formats
@@ -297,6 +299,7 @@ CREATE TABLE IF NOT EXISTS public.experiments (
   tags              TEXT[]              NOT NULL DEFAULT '{}',
   metadata          JSONB               NOT NULL DEFAULT '{}',
   cognee_node_id    TEXT,
+  is_archived       BOOLEAN             NOT NULL DEFAULT FALSE,
   created_by        UUID                NOT NULL REFERENCES public.users(id)     ON DELETE RESTRICT,
   assigned_to       UUID                REFERENCES public.users(id)              ON DELETE SET NULL,
   created_at        TIMESTAMPTZ         NOT NULL DEFAULT NOW(),
@@ -335,6 +338,7 @@ CREATE TABLE IF NOT EXISTS public.research_papers (
   notes           TEXT,
   metadata        JSONB       NOT NULL DEFAULT '{}',
   cognee_node_id  TEXT,
+  is_archived     BOOLEAN     NOT NULL DEFAULT FALSE,
   added_by        UUID        NOT NULL REFERENCES public.users(id) ON DELETE RESTRICT,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -370,6 +374,7 @@ CREATE TABLE IF NOT EXISTS public.datasets (
   tags            TEXT[]        NOT NULL DEFAULT '{}',
   metadata        JSONB         NOT NULL DEFAULT '{}',
   cognee_node_id  TEXT,
+  is_archived     BOOLEAN       NOT NULL DEFAULT FALSE,
   created_by      UUID          NOT NULL REFERENCES public.users(id) ON DELETE RESTRICT,
   created_at      TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMPTZ   NOT NULL DEFAULT NOW()
@@ -406,6 +411,7 @@ CREATE TABLE IF NOT EXISTS public.meetings (
   tags            TEXT[]        NOT NULL DEFAULT '{}',
   metadata        JSONB         NOT NULL DEFAULT '{}',
   cognee_node_id  TEXT,
+  is_archived     BOOLEAN       NOT NULL DEFAULT FALSE,
   created_by      UUID          NOT NULL REFERENCES public.users(id) ON DELETE RESTRICT,
   created_at      TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMPTZ   NOT NULL DEFAULT NOW()
@@ -439,6 +445,8 @@ CREATE TABLE IF NOT EXISTS public.research_decisions (
   tags            TEXT[]            NOT NULL DEFAULT '{}',
   metadata        JSONB             NOT NULL DEFAULT '{}',
   cognee_node_id  TEXT,
+  is_archived     BOOLEAN           NOT NULL DEFAULT FALSE,
+  status          TEXT              NOT NULL DEFAULT 'proposed',
   created_by      UUID              NOT NULL REFERENCES public.users(id) ON DELETE RESTRICT,
   created_at      TIMESTAMPTZ       NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMPTZ       NOT NULL DEFAULT NOW()
@@ -477,6 +485,7 @@ CREATE TABLE IF NOT EXISTS public.publications (
   tags              TEXT[]             NOT NULL DEFAULT '{}',
   metadata          JSONB              NOT NULL DEFAULT '{}',
   cognee_node_id    TEXT,
+  is_archived       BOOLEAN            NOT NULL DEFAULT FALSE,
   created_by        UUID               NOT NULL REFERENCES public.users(id) ON DELETE RESTRICT,
   created_at        TIMESTAMPTZ        NOT NULL DEFAULT NOW(),
   updated_at        TIMESTAMPTZ        NOT NULL DEFAULT NOW()
@@ -729,6 +738,45 @@ AS $$
   );
 $$;
 
+-- Returns TRUE if the calling user is a guest of the given lab.
+CREATE OR REPLACE FUNCTION public.is_lab_guest(p_lab_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql STABLE SECURITY DEFINER
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM   public.lab_members
+    WHERE  lab_id  = p_lab_id
+      AND  user_id = auth.uid()
+      AND  role    = 'guest'
+      AND  is_active = TRUE
+  );
+$$;
+
+-- Returns TRUE if the user has credentials to create a new research laboratory
+CREATE OR REPLACE FUNCTION public.can_create_lab()
+RETURNS BOOLEAN
+LANGUAGE plpgsql SECURITY DEFINER
+AS $$
+DECLARE
+  v_position TEXT;
+BEGIN
+  SELECT position INTO v_position FROM public.users WHERE id = auth.uid();
+  IF v_position IN ('Professor', 'Associate Professor', 'Admin', 'PI') THEN
+    RETURN TRUE;
+  END IF;
+  IF EXISTS (
+    SELECT 1 
+    FROM public.lab_members 
+    WHERE user_id = auth.uid() 
+      AND role IN ('member', 'guest')
+  ) THEN
+    RETURN FALSE;
+  END IF;
+  RETURN TRUE;
+END;
+$$;
+
 
 -- ─── 5.1  users ──────────────────────────────────────────────────────────────
 
@@ -763,11 +811,11 @@ CREATE POLICY "labs_select_member_or_public"
     OR public.is_lab_member(id)
   );
 
--- Any authenticated user can create a lab (they become the owner via trigger)
+-- Only Owner or Admin can create a lab
 CREATE POLICY "labs_insert_authenticated"
   ON public.labs FOR INSERT
   TO authenticated
-  WITH CHECK (created_by = auth.uid());
+  WITH CHECK (created_by = auth.uid() AND public.can_create_lab());
 
 -- Only lab admins / owners can update lab settings
 CREATE POLICY "labs_update_admin"
@@ -822,13 +870,19 @@ CREATE POLICY "lab_members_delete_admin_or_self"
 
 -- ─── 5.4  projects ───────────────────────────────────────────────────────────
 
--- Lab members see all projects in their lab; public projects are readable
+-- Lab members see all projects in their lab; public completed projects are readable for guests
 CREATE POLICY "projects_select_member_or_public"
   ON public.projects FOR SELECT
   TO authenticated
   USING (
-    is_public = TRUE
-    OR public.is_lab_member(lab_id)
+    (is_public = TRUE AND NOT public.is_lab_guest(lab_id))
+    OR (
+      public.is_lab_member(lab_id)
+      AND (
+        NOT public.is_lab_guest(lab_id)
+        OR status = 'completed'
+      )
+    )
   );
 
 -- Lab members can create projects
@@ -899,7 +953,10 @@ CREATE POLICY "project_members_delete_lab_admin"
 CREATE POLICY "experiments_select_lab_member"
   ON public.experiments FOR SELECT
   TO authenticated
-  USING (public.is_lab_member(lab_id));
+  USING (
+    public.is_lab_member(lab_id)
+    AND NOT public.is_lab_guest(lab_id)
+  );
 
 CREATE POLICY "experiments_insert_lab_member"
   ON public.experiments FOR INSERT
@@ -1012,7 +1069,10 @@ CREATE POLICY "datasets_delete_admin_or_creator"
 CREATE POLICY "meetings_select_lab_member"
   ON public.meetings FOR SELECT
   TO authenticated
-  USING (public.is_lab_member(lab_id));
+  USING (
+    public.is_lab_member(lab_id)
+    AND NOT public.is_lab_guest(lab_id)
+  );
 
 CREATE POLICY "meetings_insert_lab_member"
   ON public.meetings FOR INSERT
@@ -1048,7 +1108,13 @@ CREATE POLICY "meetings_delete_admin_or_creator"
 CREATE POLICY "decisions_select_lab_member"
   ON public.research_decisions FOR SELECT
   TO authenticated
-  USING (public.is_lab_member(lab_id));
+  USING (
+    public.is_lab_member(lab_id)
+    AND (
+      NOT public.is_lab_guest(lab_id)
+      OR status = 'approved'
+    )
+  );
 
 CREATE POLICY "decisions_insert_lab_member"
   ON public.research_decisions FOR INSERT
@@ -1081,7 +1147,13 @@ CREATE POLICY "decisions_delete_admin"
 CREATE POLICY "publications_select_lab_member"
   ON public.publications FOR SELECT
   TO authenticated
-  USING (public.is_lab_member(lab_id));
+  USING (
+    public.is_lab_member(lab_id)
+    AND (
+      NOT public.is_lab_guest(lab_id)
+      OR status = 'published'
+    )
+  );
 
 CREATE POLICY "publications_insert_lab_member"
   ON public.publications FOR INSERT

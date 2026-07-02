@@ -77,12 +77,15 @@ export const projectsService = {
       console.warn('[Projects] Failed to fetch project before deletion:', e.message);
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('projects')
-      .delete()
-      .eq('id', id);
+      .update({ status: 'archived' })
+      .eq('id', id)
+      .select()
+      .single();
 
     if (error) throw error;
+    return data;
   }
 };
 
