@@ -136,3 +136,24 @@ CREATE POLICY "publications_select_lab_member"
 
 -- Enforce delete policies to block standard deletions (must be done by Soft-Delete update policies)
 -- The application services will perform update operations to mark records as archived.
+
+-- 6. Update user trigger to sync position and institution from raw metadata
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO public.users (id, email, full_name, avatar_url, position, institution)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', split_part(NEW.email, '@', 1)),
+    NEW.raw_user_meta_data->>'avatar_url',
+    NEW.raw_user_meta_data->>'position',
+    NEW.raw_user_meta_data->>'institution'
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$;

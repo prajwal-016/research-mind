@@ -1279,12 +1279,14 @@ LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = public
 AS $$
 BEGIN
-  INSERT INTO public.users (id, email, full_name, avatar_url)
+  INSERT INTO public.users (id, email, full_name, avatar_url, position, institution)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', split_part(NEW.email, '@', 1)),
-    NEW.raw_user_meta_data->>'avatar_url'
+    NEW.raw_user_meta_data->>'avatar_url',
+    NEW.raw_user_meta_data->>'position',
+    NEW.raw_user_meta_data->>'institution'
   )
   ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
