@@ -7,8 +7,10 @@ import { LabFormModal } from '@/components/labs/LabFormModal';
 import { labsService } from '@/services/labs.service';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function LabsPage() {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [labs, setLabs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,6 +52,15 @@ export default function LabsPage() {
   useEffect(() => {
     fetchLabs();
   }, [fetchLabs]);
+
+  const handleCreateClick = () => {
+    const position = user?.user_metadata?.position;
+    if (!['Professor', 'Associate Professor', 'PI', 'Admin'].includes(position)) {
+      toast.error('Only Professors, PIs, or Admins are authorized to create official research labs.');
+      return;
+    }
+    setIsCreateOpen(true);
+  };
 
   const handleCreateLab = async (payload) => {
     try {
@@ -95,7 +106,7 @@ export default function LabsPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button onClick={() => setIsCreateOpen(true)} className="shrink-0 gap-2 cursor-pointer">
+          <Button onClick={handleCreateClick} className="shrink-0 gap-2 cursor-pointer">
             <Building2 className="h-4 w-4" />
             <span className="hidden sm:inline">Create Lab</span>
           </Button>
