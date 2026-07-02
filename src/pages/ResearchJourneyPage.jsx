@@ -13,7 +13,7 @@ import {
   Filler
 } from 'chart.js';
 
-import { Brain, Search, Loader2, AlertCircle, RefreshCw, Sparkles, Flame, Clock, Award, LineChart } from 'lucide-react';
+import { Brain, Search, Loader2, AlertCircle, RefreshCw, Sparkles, Flame, Clock, Award, LineChart, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { JourneyFilters } from '@/components/journey/JourneyFilters';
