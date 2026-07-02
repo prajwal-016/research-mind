@@ -180,8 +180,9 @@ Answer:`;
 
         // Find matches to show in sidebars
         const qWords = query.toLowerCase().split(' ');
-        const filterMatches = (list = [], titleKey = 'title') => {
-          return list
+        const filterMatches = (list, titleKey = 'title') => {
+          const safeList = list || [];
+          return safeList
             .filter(item => {
               const val = (item[titleKey] || '').toLowerCase();
               return qWords.some(word => word.length > 3 && val.includes(word));

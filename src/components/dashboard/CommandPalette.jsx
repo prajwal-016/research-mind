@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/context/ThemeContext';
 import { demoModeUtil } from '@/utils/demo';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
 const ENTITY_ICONS = {
