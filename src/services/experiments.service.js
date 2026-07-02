@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { memoryService } from '@/services/memory.service';
+import { demoModeUtil } from '@/utils/demo';
 
 export const experimentsService = {
   async getExperimentsByLabId(labId) {
@@ -36,6 +37,7 @@ export const experimentsService = {
   },
 
   async createExperiment(experimentData) {
+    demoModeUtil.checkMutation('Create Experiment');
     const { data, error } = await supabase
       .from('experiments')
       .insert([experimentData])
@@ -53,6 +55,7 @@ export const experimentsService = {
   },
 
   async updateExperiment(id, updates) {
+    demoModeUtil.checkMutation('Update Experiment');
     const { data, error } = await supabase
       .from('experiments')
       .update(updates)
@@ -71,6 +74,7 @@ export const experimentsService = {
   },
 
   async deleteExperiment(id) {
+    demoModeUtil.checkMutation('Delete Experiment');
     try {
       const experiment = await this.getExperimentById(id);
       if (experiment) {
