@@ -17,7 +17,8 @@ ALTER TABLE public.publications ADD COLUMN IF NOT EXISTS is_archived BOOLEAN NOT
 -- 3. Add status column to research_decisions
 ALTER TABLE public.research_decisions ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'proposed';
 
--- 4. Drop existing RLS helper functions and recreate them with new checks
+-- 4. Drop policy that depends on can_create_lab first, then recreate function
+DROP POLICY IF EXISTS "labs_insert_authenticated" ON public.labs;
 DROP FUNCTION IF EXISTS public.can_create_lab();
 CREATE OR REPLACE FUNCTION public.can_create_lab()
 RETURNS BOOLEAN
