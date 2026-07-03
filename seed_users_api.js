@@ -1,14 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Error: Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY in environment variables.');
+if (!supabaseUrl || !serviceRoleKey) {
+  console.error('Error: Missing VITE_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in environment variables.');
   process.exit(1);
 }
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(supabaseUrl, serviceRoleKey);
 
 const users = [
   {
@@ -139,12 +139,11 @@ async function seedUsers() {
   console.log('Signing up users via Supabase client API...');
   
   for (const u of users) {
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.admin.createUser({
       email: u.email,
       password: u.password,
-      options: {
-        data: u.meta
-      }
+      email_confirm: true,
+      user_metadata: u.meta
     });
 
     if (error) {
@@ -155,11 +154,11 @@ async function seedUsers() {
   }
 
   console.log('\n=============================================================');
-  console.log('🎉 API Signups Completed!');
+  console.log('🎉 API Signups Completed via Admin API!');
   console.log('=============================================================');
   console.log('Next step:');
-  console.log('To confirm the emails of all users, copy and run this single SQL line in your Supabase SQL Editor:');
-  console.log('👉 UPDATE auth.users SET email_confirmed_at = NOW();');
+  console.log('All users are fully created and pre-confirmed. No verification email needed!');
+  console.log('You can now run your SQL seeding scripts for labs, projects, etc.');
   console.log('=============================================================');
 }
 
